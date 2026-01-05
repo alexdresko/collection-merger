@@ -1,0 +1,28 @@
+# Auto-detect text files and normalize line endings.
+* text=auto
+
+# Common .NET / tooling files
+*.sln text
+*.csproj text
+*.props text
+*.targets text
+*.cs text
+*.csx text
+*.fs text
+*.fsx text
+*.vb text
+*.json text
+*.yml text
+*.yaml text
+*.md text
+
+# Treat common binary assets as binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.nupkg binary
+*.snupkg binary
