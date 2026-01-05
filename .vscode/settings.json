@@ -1,0 +1,3 @@
+{
+    "gitlens.ai.generateCommitMessage.customInstructions": "Refer to `docs/commit-instructions.md`"
+}
