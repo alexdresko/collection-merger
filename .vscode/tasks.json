@@ -1,0 +1,205 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Release: New Version",
+      "type": "shell",
+      "command": "pwsh",
+      "args": [
+        "-File",
+        "${workspaceFolder}/scripts/Release-Version.ps1"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "dedicated",
+        "showReuseMessage": false,
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Build Solution",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "build",
+        "${workspaceFolder}/collection-merger.sln",
+        "--configuration",
+        "Release"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": "$msCompile",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Test Solution",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "test",
+        "${workspaceFolder}/collection-merger.sln",
+        "--configuration",
+        "Release",
+        "--no-build",
+        "--verbosity",
+        "normal"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": "$msCompile",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "dependsOn": ["Build Solution"]
+    },
+    {
+      "label": "Pack NuGet Package",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "pack",
+        "${workspaceFolder}/src/CollectionMerger/CollectionMerger.csproj",
+        "--configuration",
+        "Release",
+        "--output",
+        "${workspaceFolder}/artifacts/nuget"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": "$msCompile",
+      "group": "build",
+      "dependsOn": ["Build Solution"]
+    },
+    {
+      "label": "Clean Solution",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "clean",
+        "${workspaceFolder}/collection-merger.sln",
+        "--configuration",
+        "Release"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": "$msCompile",
+      "group": "build"
+    },
+    {
+      "label": "Test with Coverage",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "test",
+        "${workspaceFolder}/collection-merger.sln",
+        "--configuration",
+        "Release",
+        "--collect:XPlat Code Coverage",
+        "--settings",
+        "${workspaceFolder}/coverlet.runsettings"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": "$msCompile",
+      "group": "test"
+    },
+    {
+      "label": "Tools: Install ReportGenerator (global)",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "tool",
+        "install",
+        "--global",
+        "dotnet-reportgenerator-globaltool"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Coverage: Generate Report",
+      "type": "shell",
+      "command": "pwsh",
+      "args": [
+        "-Command",
+        "$report = Get-ChildItem -Path '${workspaceFolder}/test/CollectionMerger.Tests/TestResults' -Recurse -Filter 'coverage.cobertura.xml' | Sort-Object LastWriteTime -Descending | Select-Object -First 1 -ExpandProperty FullName; if (-not $report) { throw 'No coverage.cobertura.xml found. Run \"Test with Coverage\" first.' }; reportgenerator -reports:$report -targetdir:'${workspaceFolder}/coverage-report' -reporttypes:Html"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "Coverage: Open Report",
+      "type": "shell",
+      "command": "pwsh",
+      "args": [
+        "-Command",
+        "Start-Process '${workspaceFolder}/coverage-report/index.html'"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "never",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "Coverage: Full Report",
+      "type": "shell",
+      "command": "pwsh",
+      "args": [
+        "-Command",
+        "dotnet test '${workspaceFolder}/collection-merger.sln' --configuration Release --collect:'XPlat Code Coverage' --settings '${workspaceFolder}/coverlet.runsettings'; $report = Get-ChildItem -Path '${workspaceFolder}/test/CollectionMerger.Tests/TestResults' -Recurse -Filter 'coverage.cobertura.xml' | Sort-Object LastWriteTime -Descending | Select-Object -First 1 -ExpandProperty FullName; if (-not $report) { throw 'No coverage.cobertura.xml found.' }; reportgenerator -reports:$report -targetdir:'${workspaceFolder}/coverage-report' -reporttypes:Html; Start-Process '${workspaceFolder}/coverage-report/index.html'"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "dedicated",
+        "showReuseMessage": false,
+        "clear": false
+      },
+      "problemMatcher": [],
+      "group": "test"
+    }
+  ]
+}
