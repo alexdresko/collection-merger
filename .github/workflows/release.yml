@@ -1,0 +1,53 @@
+name: Release (NuGet)
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-pack-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            10.0.x
+
+      - name: Set version from tag
+        shell: bash
+        run: |
+          echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+
+      - name: Restore
+        run: dotnet restore ./collection-merger.sln
+
+      - name: Build
+        run: dotnet build ./collection-merger.sln -c Release --no-restore /p:Version=${{ env.VERSION }}
+
+      - name: Test
+        run: dotnet test ./collection-merger.sln -c Release --no-build /p:Version=${{ env.VERSION }}
+
+      - name: Pack
+        run: dotnet pack ./src/CollectionMerger/CollectionMerger.csproj -c Release --no-build -o ./artifacts/nuget /p:Version=${{ env.VERSION }} /p:PackageVersion=${{ env.VERSION }}
+
+      - name: Publish to NuGet
+        run: dotnet nuget push "./artifacts/nuget/*" --api-key "${{ secrets.NUGET_API_KEY }}" --source "https://api.nuget.org/v3/index.json" --skip-duplicate
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ./artifacts/nuget/*
+          generate_release_notes: true
