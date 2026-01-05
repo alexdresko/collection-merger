@@ -1,3 +1,8 @@
 {
-    "gitlens.ai.generateCommitMessage.customInstructions": "Refer to `docs/commit-instructions.md`"
+    "gitlens.ai.generateCommitMessage.customInstructions": "This repository requires **Conventional Commits** for all commit messages.",
+    "github.copilot.chat.commitMessageGeneration.instructions": [
+        {
+            "file": "docs/commit-instructions.md"
+        }
+    ]
 }
