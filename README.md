@@ -7,7 +7,7 @@
 Synchronize/merge collections while generating a **change report** (added/updated/removed), including **nested collection** merges.
 
 - Targets: `net8.0`, `net9.0`, `net10.0`
-- Main entry point: `CollectionSyncExtensions.MapFrom(...)`
+- Usage: Call `.MapFrom(...)` on any collection, passing another collection to merge from
 - Output: `SyncReport` with a list of `ChangeRecord` items
 
 See [CHANGELOG.md](CHANGELOG.md) for release history.
