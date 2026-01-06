@@ -140,4 +140,155 @@ public class Tests
         Assert.That(report.RemovedCount, Is.EqualTo(1));
         Assert.That(report.Changes.Any(c => c.ChangeType == ChangeType.Removed && c.Path == "SoftDeleteDestination[1]"), Is.True);
     }
+
+    [Test]
+    public void MapFrom_WithIEnumerableSource_WorksCorrectly()
+    {
+        var destination = new List<Person>
+        {
+            new() { ID = 1, Name = "Alice" }
+        };
+
+        // Use a true IEnumerable (not IReadOnlyCollection) to hit the IEnumerable overload
+        IEnumerable<PersonDto> source = GetPersonDtos();
+
+        var report = destination.MapFrom(
+            source: source,
+            matchPredicate: (src, dest) => src.ID == dest.ID,
+            mapProperties: (src, dest, _m) =>
+            {
+                dest.ID = src.ID;
+                dest.Name = src.Name;
+            });
+
+        Assert.That(destination.Count, Is.EqualTo(2));
+        Assert.That(report.UpdatedCount, Is.EqualTo(1));
+        Assert.That(report.AddedCount, Is.EqualTo(1));
+    }
+
+    private static IEnumerable<PersonDto> GetPersonDtos()
+    {
+        yield return new PersonDto { ID = 1, Name = "Alice Updated" };
+        yield return new PersonDto { ID = 2, Name = "Bob" };
+    }
+
+    private static IEnumerable<CatDto> GetCatDtos(IEnumerable<CatDto> cats)
+    {
+        foreach (var cat in cats)
+        {
+            yield return cat;
+        }
+    }
+
+    [Test]
+    public void MapFrom_NestedWithIEnumerableSource_WorksCorrectly()
+    {
+        var destination = new List<Person>
+        {
+            new()
+            {
+                ID = 1,
+                Name = "Person 1",
+                Cats = [new() { ID = 1, Name = "Cat 1" }]
+            }
+        };
+
+        var source = new List<PersonDto>
+        {
+            new()
+            {
+                ID = 1,
+                Name = "Person 1 Updated",
+                Cats = [new() { ID = 1, Name = "Cat 1 Updated" }, new() { ID = 2, Name = "Cat 2" }]
+            }
+        };
+
+        var report = destination.MapFrom(
+            source: source,
+            matchPredicate: (src, dest) => src.ID == dest.ID,
+            mapProperties: (srcPerson, destPerson, m1) =>
+            {
+                destPerson.ID = srcPerson.ID;
+                destPerson.Name = srcPerson.Name;
+
+                // Use a true IEnumerable (via yield return) to hit the nested IEnumerable overload
+                IEnumerable<CatDto> catsAsEnumerable = GetCatDtos(srcPerson.Cats);
+                destPerson.Cats.MapFrom(
+                    parent: m1,
+                    source: catsAsEnumerable,
+                    matchPredicate: (srcCat, destCat) => srcCat.ID == destCat.ID,
+                    mapProperties: (srcCat, destCat, _m2) =>
+                    {
+                        destCat.ID = srcCat.ID;
+                        destCat.Name = srcCat.Name;
+                    });
+            });
+
+        Assert.That(destination.Single().Cats.Count, Is.EqualTo(2));
+        Assert.That(report.AddedCount, Is.EqualTo(1));
+        Assert.That(report.UpdatedCount, Is.EqualTo(2));
+    }
+
+    [Test]
+    public void MapFrom_IgnoresDeletedItemNotInDestination()
+    {
+        var destination = new List<FlaggedDestination>
+        {
+            new() { ID = 1, Name = "Destination 1" }
+        };
+
+        var source = new List<FlaggedSource>
+        {
+            new() { ID = 1, Name = "Source 1", Deleted = false },
+            new() { ID = 99, Name = "Non-existent item", Deleted = true }
+        };
+
+        var report = destination.MapFrom(
+            source: source,
+            matchPredicate: (src, dest) => src.ID == dest.ID,
+            mapProperties: (src, dest, _m) =>
+            {
+                dest.ID = src.ID;
+                dest.Name = src.Name;
+            },
+            isSourceDeleted: src => src.Deleted);
+
+        Assert.That(destination.Count, Is.EqualTo(1));
+        Assert.That(destination.Single().ID, Is.EqualTo(1));
+        Assert.That(report.RemovedCount, Is.EqualTo(0));
+    }
+
+    [Test]
+    public void MapFrom_DeletesItemFoundInDestination()
+    {
+        var destination = new List<FlaggedDestination>
+        {
+            new() { ID = 1, Name = "Item 1" },
+            new() { ID = 2, Name = "Item 2" }
+        };
+
+        var source = new List<FlaggedSource>
+        {
+            new() { ID = 1, Name = "Item 1 Updated", Deleted = false },
+            new() { ID = 2, Name = "Item 2", Deleted = true } // Deleted AND in destination
+        };
+
+        var report = destination.MapFrom(
+            source: source,
+            matchPredicate: (src, dest) => src.ID == dest.ID,
+            mapProperties: (src, dest, _m) =>
+            {
+                dest.ID = src.ID;
+                dest.Name = src.Name;
+            },
+            isSourceDeleted: src => src.Deleted,
+            deleteDestination: dest => dest.IsDeleted = true);
+
+        // Should update item 1 and mark item 2 as deleted
+        Assert.That(destination.Count, Is.EqualTo(2));
+        Assert.That(destination[0].Name, Is.EqualTo("Item 1 Updated"));
+        Assert.That(destination[1].IsDeleted, Is.True);
+        Assert.That(report.UpdatedCount, Is.EqualTo(1));
+        Assert.That(report.RemovedCount, Is.EqualTo(1));
+    }
 }
