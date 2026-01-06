@@ -127,7 +127,7 @@ public class AsyncTests {
         };
 
         // Use true IEnumerable to hit the async IEnumerable overload
-        IEnumerable<PersonDto> source = GetPersonDtosAsync();
+        IEnumerable<PersonDto> source = GetPersonDtos();
 
         var report = await destination.MapFromAsync(
             source: source,
@@ -146,7 +146,7 @@ public class AsyncTests {
         Assert.That(report.AddedCount, Is.EqualTo(1));
     }
 
-    private static IEnumerable<PersonDto> GetPersonDtosAsync() {
+    private static IEnumerable<PersonDto> GetPersonDtos() {
         yield return new PersonDto { ID = 1, Name = "Alice Updated" };
         yield return new PersonDto { ID = 2, Name = "Bob" };
     }
@@ -274,7 +274,7 @@ public class AsyncTests {
                 destPerson.Name = srcPerson.Name;
 
                 // Use true IEnumerable to hit async nested IEnumerable overload
-                IEnumerable<CatDto> catsAsEnumerable = GetCatDtosAsync(srcPerson.Cats);
+                IEnumerable<CatDto> catsAsEnumerable = GetCatDtos(srcPerson.Cats);
                 await destPerson.Cats.MapFromAsync(
                     parent: m1,
                     source: catsAsEnumerable,
@@ -294,7 +294,7 @@ public class AsyncTests {
         Assert.That(report.UpdatedCount, Is.EqualTo(2));
     }
 
-    private static IEnumerable<CatDto> GetCatDtosAsync(IEnumerable<CatDto> cats) {
+    private static IEnumerable<CatDto> GetCatDtos(IEnumerable<CatDto> cats) {
         foreach (var cat in cats) {
             yield return cat;
         }
