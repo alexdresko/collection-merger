@@ -1,9 +1,7 @@
 namespace CollectionMerger;
 
-public sealed class SyncReport
-{
-    public SyncReport(IReadOnlyList<ChangeRecord> changes)
-    {
+public sealed class SyncReport {
+    public SyncReport(IReadOnlyList<ChangeRecord> changes) {
         ArgumentNullException.ThrowIfNull(changes);
         Changes = changes;
     }

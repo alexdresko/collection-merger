@@ -1,6 +1,5 @@
-﻿namespace CollectionMerger;
+namespace CollectionMerger;
 
-public class Class1
-{
+public class Class1 {
 
 }
