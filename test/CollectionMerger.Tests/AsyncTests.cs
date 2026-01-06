@@ -45,7 +45,7 @@ public class AsyncTests
 
         var report = await destinationPeople.MapFromAsync(
             source: sourcePeople,
-            matchPredicate: async (srcPerson, destPerson) => 
+            matchPredicate: async (srcPerson, destPerson) =>
             {
                 await Task.CompletedTask;
                 return srcPerson.ID == destPerson.ID;
@@ -58,7 +58,7 @@ public class AsyncTests
                 await destPerson.Cats.MapFromAsync(
                     parent: m1,
                     source: srcPerson.Cats,
-                    matchPredicate: async (srcCat, destCat) => 
+                    matchPredicate: async (srcCat, destCat) =>
                     {
                         await Task.CompletedTask;
                         return srcCat.ID == destCat.ID;
