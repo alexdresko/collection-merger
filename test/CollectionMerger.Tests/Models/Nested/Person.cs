@@ -1,6 +1,6 @@
 namespace CollectionMerger.Tests.Models.Nested;
 
-internal sealed class Person
+public sealed class Person
 {
     public int ID { get; set; }
     public string Name { get; set; } = "";
