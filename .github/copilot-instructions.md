@@ -11,3 +11,8 @@ See: `docs/commit-instructions.md`
 - Applies to both production code (`src/`) and tests (`test/`).
 - If helper/test-only types are needed, place each helper class in its own file under the test project.
 
+## Code formatting
+
+- Always run `dotnet format ./collection-merger.sln` at the end of completed work to ensure code adheres to formatting standards.
+- The CI build will fail if formatting issues are detected.
+
