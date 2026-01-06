@@ -6,11 +6,11 @@
 *.csproj text
 *.props text
 *.targets text
-*.cs text
-*.csx text
-*.fs text
-*.fsx text
-*.vb text
+*.cs text eol=crlf
+*.csx text eol=crlf
+*.fs text eol=crlf
+*.fsx text eol=crlf
+*.vb text eol=crlf
 *.json text
 *.yml text
 *.yaml text

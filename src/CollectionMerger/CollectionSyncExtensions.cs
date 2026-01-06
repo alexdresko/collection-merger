@@ -1,7 +1,6 @@
 namespace CollectionMerger;
 
-public static class CollectionSyncExtensions
-{
+public static class CollectionSyncExtensions {
     /// <summary>
     /// Merges <paramref name="source"/> into <paramref name="destination"/> and returns a report describing adds/updates/removes.
     /// </summary>
@@ -12,8 +11,7 @@ public static class CollectionSyncExtensions
         Action<TSource, TDestination, Mapper> mapProperties,
         Func<TSource, bool>? isSourceDeleted = null,
         Action<TDestination>? deleteDestination = null)
-        where TDestination : new()
-    {
+        where TDestination : new() {
         ArgumentNullException.ThrowIfNull(destination);
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(matchPredicate);
@@ -45,8 +43,7 @@ public static class CollectionSyncExtensions
         Action<TSource, TDestination, Mapper> mapProperties,
         Func<TSource, bool>? isSourceDeleted = null,
         Action<TDestination>? deleteDestination = null)
-        where TDestination : new()
-    {
+        where TDestination : new() {
         ArgumentNullException.ThrowIfNull(destination);
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(matchPredicate);
@@ -67,8 +64,7 @@ public static class CollectionSyncExtensions
         Action<TSource, TDestination, Mapper> mapProperties,
         Func<TSource, bool>? isSourceDeleted = null,
         Action<TDestination>? deleteDestination = null)
-        where TDestination : new()
-    {
+        where TDestination : new() {
         ArgumentNullException.ThrowIfNull(destination);
         ArgumentNullException.ThrowIfNull(parent);
         ArgumentNullException.ThrowIfNull(source);
@@ -98,8 +94,7 @@ public static class CollectionSyncExtensions
         Action<TSource, TDestination, Mapper> mapProperties,
         Func<TSource, bool>? isSourceDeleted = null,
         Action<TDestination>? deleteDestination = null)
-        where TDestination : new()
-    {
+        where TDestination : new() {
         ArgumentNullException.ThrowIfNull(destination);
         ArgumentNullException.ThrowIfNull(parent);
         ArgumentNullException.ThrowIfNull(source);
@@ -120,16 +115,11 @@ public static class CollectionSyncExtensions
         Action<TDestination>? deleteDestination,
         string? parentPath,
         string collectionName)
-        where TDestination : new()
-    {
-        void ApplyDelete(object? sourceItem, TDestination destinationItem)
-        {
-            if (deleteDestination is null)
-            {
+        where TDestination : new() {
+        void ApplyDelete(object? sourceItem, TDestination destinationItem) {
+            if (deleteDestination is null) {
                 destination.Remove(destinationItem);
-            }
-            else
-            {
+            } else {
                 deleteDestination(destinationItem);
             }
 
@@ -137,21 +127,19 @@ public static class CollectionSyncExtensions
             mapper.RecordRemove(itemPath, destinationItem!);
         }
 
-        foreach (var sourceItem in source)
-        {
-            if (isSourceDeleted?.Invoke(sourceItem) == true)
-            {
+        foreach (var sourceItem in source) {
+            if (isSourceDeleted?.Invoke(sourceItem) == true) {
                 var deletedItem = destination.FirstOrDefault(d => matchPredicate(sourceItem, d));
-                if (deletedItem is null)
+                if (deletedItem is null) {
                     continue;
+                }
 
                 ApplyDelete(sourceItem, deletedItem);
                 continue;
             }
 
             var destItem = destination.FirstOrDefault(d => matchPredicate(sourceItem, d));
-            if (destItem is not null)
-            {
+            if (destItem is not null) {
                 var beforeState = StateCapture.Capture(destItem);
 
                 var itemPath = PathBuilder.Build(parentPath, collectionName, sourceItem, destItem);
@@ -163,8 +151,7 @@ public static class CollectionSyncExtensions
 
                 var afterState = StateCapture.Capture(destItem);
                 var changes = StateCapture.DetectChanges(beforeState, afterState);
-                if (changes.Count > 0)
-                {
+                if (changes.Count > 0) {
                     mapper.RecordUpdate(itemPath, destItem!, changes);
                 }
 
@@ -187,8 +174,7 @@ public static class CollectionSyncExtensions
             .Where(dest => !source.Any(src => matchPredicate(src, dest)))
             .ToList();
 
-        foreach (var item in toRemove)
-        {
+        foreach (var item in toRemove) {
             ApplyDelete(sourceItem: null, destinationItem: item);
         }
     }

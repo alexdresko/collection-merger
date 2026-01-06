@@ -1,9 +1,7 @@
 namespace CollectionMerger;
 
-public sealed class PropertyChange
-{
-    public PropertyChange(string propertyName, object? oldValue, object? newValue)
-    {
+public sealed class PropertyChange {
+    public PropertyChange(string propertyName, object? oldValue, object? newValue) {
         PropertyName = propertyName ?? throw new ArgumentNullException(nameof(propertyName));
         OldValue = oldValue;
         NewValue = newValue;
