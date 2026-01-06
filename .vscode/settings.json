@@ -4,5 +4,9 @@
         {
             "file": "docs/commit-instructions.md"
         }
-    ]
+    ],
+    "files.exclude": {
+        "**/bin": true,
+        "**/obj": true
+    }
 }
