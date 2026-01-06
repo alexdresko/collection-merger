@@ -15,7 +15,7 @@ public class AsyncTests
                 Name = "Person 1 will be updated",
                 Cats =
                 [
-                    new() { ID = 1, Name = "Cat 1 be updated" },
+                    new() { ID = 1, Name = "Cat 1 will be updated" },
                     new() { ID = 2, Name = "Cat 2 will be removed" }
                 ]
             },

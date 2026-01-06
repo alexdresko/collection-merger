@@ -110,15 +110,7 @@ public static class CollectionSyncAsyncExtensions
     {
         foreach (var sourceItem in source)
         {
-            var destItem = default(TDestination);
-            foreach (var d in destination)
-            {
-                if (await matchPredicate(sourceItem, d))
-                {
-                    destItem = d;
-                    break;
-                }
-            }
+            var destItem = await FindFirstMatchAsync(destination, sourceItem, matchPredicate);
 
             if (destItem is not null)
             {
@@ -153,6 +145,36 @@ public static class CollectionSyncAsyncExtensions
             mapper.RecordAdd(newItemPath, newItem);
         }
 
+        var toRemove = await FindItemsToRemoveAsync(destination, source, matchPredicate);
+
+        foreach (var item in toRemove)
+        {
+            destination.Remove(item);
+            var itemPath = PathBuilder.Build(parentPath, collectionName, sourceItem: null, destinationItem: item);
+            mapper.RecordRemove(itemPath, item!);
+        }
+    }
+
+    private static async Task<TDestination?> FindFirstMatchAsync<TSource, TDestination>(
+        ICollection<TDestination> destination,
+        TSource sourceItem,
+        Func<TSource, TDestination, Task<bool>> matchPredicate)
+    {
+        foreach (var d in destination)
+        {
+            if (await matchPredicate(sourceItem, d))
+            {
+                return d;
+            }
+        }
+        return default;
+    }
+
+    private static async Task<List<TDestination>> FindItemsToRemoveAsync<TSource, TDestination>(
+        ICollection<TDestination> destination,
+        IReadOnlyCollection<TSource> source,
+        Func<TSource, TDestination, Task<bool>> matchPredicate)
+    {
         var toRemove = new List<TDestination>();
         foreach (var dest in destination)
         {
@@ -170,12 +192,6 @@ public static class CollectionSyncAsyncExtensions
                 toRemove.Add(dest);
             }
         }
-
-        foreach (var item in toRemove)
-        {
-            destination.Remove(item);
-            var itemPath = PathBuilder.Build(parentPath, collectionName, sourceItem: null, destinationItem: item);
-            mapper.RecordRemove(itemPath, item!);
-        }
+        return toRemove;
     }
 }
