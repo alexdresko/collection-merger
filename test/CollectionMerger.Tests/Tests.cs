@@ -1,4 +1,5 @@
-using CollectionMerger.Tests.Models;
+using CollectionMerger.Tests.Models.Deletion;
+using CollectionMerger.Tests.Models.Nested;
 
 namespace CollectionMerger.Tests;
 
@@ -82,5 +83,61 @@ public class Tests
         Assert.That(report.Changes.Any(c => c.ChangeType == ChangeType.Added && c.Path == "Person[2].Cat[4]"), Is.True);
         Assert.That(report.Changes.Any(c => c.ChangeType == ChangeType.Removed && c.Path == "Person[4]"), Is.True);
         Assert.That(report.Changes.Any(c => c.ChangeType == ChangeType.Removed && c.Path == "Person[1].Cat[2]"), Is.True);
+    }
+
+    [Test]
+    public void MapFrom_RemovesDestination_WhenSourceIsMarkedDeleted()
+    {
+        var destination = new List<FlaggedDestination>
+        {
+            new() { ID = 1, Name = "Destination 1" },
+            new() { ID = 2, Name = "Destination 2" }
+        };
+
+        var source = new List<FlaggedSource>
+        {
+            new() { ID = 1, Name = "Source 1", Deleted = false },
+            new() { ID = 2, Name = "Source 2", Deleted = true }
+        };
+
+        var report = destination.MapFrom(
+            source: source,
+            matchPredicate: (src, dest) => src.ID == dest.ID,
+            mapProperties: (src, dest, _m) =>
+            {
+                dest.ID = src.ID;
+                dest.Name = src.Name;
+            },
+            isSourceDeleted: src => src.Deleted);
+
+        Assert.That(destination.Select(item => item.ID), Is.EquivalentTo(new[] { 1 }));
+        Assert.That(report.RemovedCount, Is.EqualTo(1));
+        Assert.That(report.Changes.Any(c => c.ChangeType == ChangeType.Removed && c.Path == "FlaggedDestination[2]"), Is.True);
+    }
+
+    [Test]
+    public void MapFrom_UsesDeleteDestinationAction_ForRemovals()
+    {
+        var destination = new List<SoftDeleteDestination>
+        {
+            new() { ID = 1, Name = "Destination 1" }
+        };
+
+        var source = new List<SoftDeleteSource>();
+
+        var report = destination.MapFrom(
+            source: source,
+            matchPredicate: (src, dest) => src.ID == dest.ID,
+            mapProperties: (src, dest, _m) =>
+            {
+                dest.ID = src.ID;
+                dest.Name = src.Name;
+            },
+            deleteDestination: dest => dest.Deleted = true);
+
+        Assert.That(destination.Count, Is.EqualTo(1));
+        Assert.That(destination.Single().Deleted, Is.True);
+        Assert.That(report.RemovedCount, Is.EqualTo(1));
+        Assert.That(report.Changes.Any(c => c.ChangeType == ChangeType.Removed && c.Path == "SoftDeleteDestination[1]"), Is.True);
     }
 }

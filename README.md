@@ -38,6 +38,8 @@ You merge a source collection into a destination collection by providing:
 
 - `matchPredicate`: how to match a source item to an existing destination item (usually by an ID)
 - `mapProperties`: how to copy/update properties from source to destination
+- `isSourceDeleted` (optional): treat a source item as deleted even when it exists in the source collection
+- `deleteDestination` (optional): custom delete action for destination items (default removes from the collection)
 
 ```csharp
 using CollectionMerger;
@@ -108,6 +110,36 @@ foreach (var change in report.Changes)
     foreach (var prop in change.PropertyChanges)
         Console.WriteLine($"  - {prop.PropertyName}: '{prop.OldValue}' -> '{prop.NewValue}'");
 }
+```
+
+### Source-driven deletes + custom delete actions
+
+Mark a source item as deleted and remove its destination match (default removal):
+
+```csharp
+var report = destination.MapFrom(
+    source: source,
+    matchPredicate: (src, dest) => src.ID == dest.ID,
+    mapProperties: (src, dest, _m) =>
+    {
+        dest.ID = src.ID;
+        dest.Name = src.Name;
+    },
+    isSourceDeleted: src => src.Deleted);
+```
+
+Provide a custom delete action (soft delete instead of removing):
+
+```csharp
+var report = destination.MapFrom(
+    source: source,
+    matchPredicate: (src, dest) => src.ID == dest.ID,
+    mapProperties: (src, dest, _m) =>
+    {
+        dest.ID = src.ID;
+        dest.Name = src.Name;
+    },
+    deleteDestination: dest => dest.Deleted = true);
 ```
 
 ## What the report contains
