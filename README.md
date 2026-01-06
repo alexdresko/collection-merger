@@ -174,6 +174,20 @@ If you want nested changes, perform nested merges with the nested overload of `M
 - `TDestination` must have a parameterless constructor (`new()` constraint)
 - Matching behavior is entirely defined by your `matchPredicate` (make sure it uniquely identifies items)
 
+## Similar projects
+
+### AutoMapper.Collection
+
+CollectionMerger is similar to [AutoMapper.Collection](https://github.com/AutoMapper/AutoMapper.Collection).
+
+Key differences:
+
+- **No Entity Framework dependency**: CollectionMerger does not have a dependency on Entity Framework, but Entity Framework can be used with it.
+- **Soft deletes**: Supports soft deletes, or even not deleting at all.
+- **Async/await**: Supports async/await patterns.
+- **Low-level approach**: Feels more low level than AutoMapper.Collection, giving you more control.
+- **No external dependencies**: Has no external dependencies.
+
 ## Feedback / issues
 
 If you hit a bug or want to request a feature, please open an issue:
