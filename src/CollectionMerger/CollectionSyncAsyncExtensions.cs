@@ -176,22 +176,31 @@ public static class CollectionSyncAsyncExtensions
         Func<TSource, TDestination, Task<bool>> matchPredicate)
     {
         var toRemove = new List<TDestination>();
+        
         foreach (var dest in destination)
         {
-            var hasMatch = false;
-            foreach (var src in source)
-            {
-                if (await matchPredicate(src, dest))
-                {
-                    hasMatch = true;
-                    break;
-                }
-            }
+            var hasMatch = await AnyMatchAsync(source, dest, matchPredicate);
             if (!hasMatch)
             {
                 toRemove.Add(dest);
             }
         }
+        
         return toRemove;
+    }
+
+    private static async Task<bool> AnyMatchAsync<TSource, TDestination>(
+        IReadOnlyCollection<TSource> source,
+        TDestination dest,
+        Func<TSource, TDestination, Task<bool>> matchPredicate)
+    {
+        foreach (var src in source)
+        {
+            if (await matchPredicate(src, dest))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }
