@@ -1,4 +1,4 @@
-using CollectionMerger.Tests.Models;
+using CollectionMerger.Tests.Models.Nested;
 
 namespace CollectionMerger.Tests;
 
