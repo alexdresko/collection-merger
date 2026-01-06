@@ -32,6 +32,25 @@ public static class CollectionSyncExtensions
     }
 
     /// <summary>
+    /// Merges <paramref name="source"/> into <paramref name="destination"/> and returns a report describing adds/updates/removes.
+    /// </summary>
+    public static SyncReport MapFrom<TSource, TDestination>(
+        this ICollection<TDestination> destination,
+        IEnumerable<TSource> source,
+        Func<TSource, TDestination, bool> matchPredicate,
+        Action<TSource, TDestination, Mapper> mapProperties)
+        where TDestination : new()
+    {
+        ArgumentNullException.ThrowIfNull(destination);
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(matchPredicate);
+        ArgumentNullException.ThrowIfNull(mapProperties);
+
+        var materializedSource = source as IReadOnlyCollection<TSource> ?? source.ToList();
+        return destination.MapFrom(materializedSource, matchPredicate, mapProperties);
+    }
+
+    /// <summary>
     /// Merges <paramref name="source"/> into <paramref name="destination"/> as a nested operation, using an existing mapper context.
     /// </summary>
     public static void MapFrom<TSource, TDestination>(
@@ -56,6 +75,27 @@ public static class CollectionSyncExtensions
             parent,
             parentPath: parent.CurrentPath,
             collectionName: typeof(TDestination).Name);
+    }
+
+    /// <summary>
+    /// Merges <paramref name="source"/> into <paramref name="destination"/> as a nested operation, using an existing mapper context.
+    /// </summary>
+    public static void MapFrom<TSource, TDestination>(
+        this ICollection<TDestination> destination,
+        Mapper parent,
+        IEnumerable<TSource> source,
+        Func<TSource, TDestination, bool> matchPredicate,
+        Action<TSource, TDestination, Mapper> mapProperties)
+        where TDestination : new()
+    {
+        ArgumentNullException.ThrowIfNull(destination);
+        ArgumentNullException.ThrowIfNull(parent);
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(matchPredicate);
+        ArgumentNullException.ThrowIfNull(mapProperties);
+
+        var materializedSource = source as IReadOnlyCollection<TSource> ?? source.ToList();
+        destination.MapFrom(parent, materializedSource, matchPredicate, mapProperties);
     }
 
     private static void MapFromInternal<TSource, TDestination>(

@@ -2,25 +2,6 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Release: New Version",
-      "type": "shell",
-      "command": "pwsh",
-      "args": [
-        "-File",
-        "${workspaceFolder}/scripts/Release-Version.ps1"
-      ],
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": true,
-        "panel": "dedicated",
-        "showReuseMessage": false,
-        "clear": true
-      },
-      "problemMatcher": [],
-      "group": "none"
-    },
-    {
       "label": "Build Solution",
       "type": "shell",
       "command": "dotnet",
