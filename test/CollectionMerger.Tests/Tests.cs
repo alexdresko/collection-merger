@@ -69,6 +69,7 @@ public class Tests
         Assert.That(destinationPeople.Single(p => p.ID == 2).Cats.Single().ID, Is.EqualTo(4));
 
         Assert.That(report.TotalChanges, Is.EqualTo(8));
+        Assert.That(report.HasChanges, Is.True);
         Assert.That(report.UpdatedCount, Is.EqualTo(2));
         Assert.That(report.AddedCount, Is.EqualTo(4));
         Assert.That(report.RemovedCount, Is.EqualTo(2));
