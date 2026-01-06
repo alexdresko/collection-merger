@@ -2,24 +2,24 @@ using System.Reflection;
 
 namespace CollectionMerger;
 
-internal static class StateCapture
-{
-    internal static Dictionary<string, object?> Capture<T>(T obj)
-    {
+internal static class StateCapture {
+    internal static Dictionary<string, object?> Capture<T>(T obj) {
         var state = new Dictionary<string, object?>();
-        if (obj is null)
+        if (obj is null) {
             return state;
+        }
 
         var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
-        foreach (var prop in properties)
-        {
-            if (!prop.CanRead)
+        foreach (var prop in properties) {
+            if (!prop.CanRead) {
                 continue;
+            }
 
             var isEnumerable = typeof(System.Collections.IEnumerable).IsAssignableFrom(prop.PropertyType);
             var isString = prop.PropertyType == typeof(string);
-            if (isEnumerable && !isString)
+            if (isEnumerable && !isString) {
                 continue;
+            }
 
             state[prop.Name] = prop.GetValue(obj);
         }
@@ -29,17 +29,17 @@ internal static class StateCapture
 
     internal static List<PropertyChange> DetectChanges(
         Dictionary<string, object?> before,
-        Dictionary<string, object?> after)
-    {
+        Dictionary<string, object?> after) {
         var changes = new List<PropertyChange>();
 
-        foreach (var (key, oldValue) in before)
-        {
-            if (!after.TryGetValue(key, out var newValue))
+        foreach (var (key, oldValue) in before) {
+            if (!after.TryGetValue(key, out var newValue)) {
                 continue;
+            }
 
-            if (Equals(oldValue, newValue))
+            if (Equals(oldValue, newValue)) {
                 continue;
+            }
 
             changes.Add(new PropertyChange(key, oldValue, newValue));
         }

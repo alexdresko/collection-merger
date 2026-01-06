@@ -2,11 +2,9 @@ using CollectionMerger.Tests.Models.Nested;
 
 namespace CollectionMerger.Tests;
 
-public class AsyncTests
-{
+public class AsyncTests {
     [Test]
-    public async Task MapFromAsync_MergesNestedCollections_AndProducesReport()
-    {
+    public async Task MapFromAsync_MergesNestedCollections_AndProducesReport() {
         var destinationPeople = new List<Person>
         {
             new()
@@ -45,26 +43,22 @@ public class AsyncTests
 
         var report = await destinationPeople.MapFromAsync(
             source: sourcePeople,
-            matchPredicate: async (srcPerson, destPerson) =>
-            {
+            matchPredicate: async (srcPerson, destPerson) => {
                 await Task.CompletedTask;
                 return srcPerson.ID == destPerson.ID;
             },
-            mapProperties: async (srcPerson, destPerson, m1) =>
-            {
+            mapProperties: async (srcPerson, destPerson, m1) => {
                 destPerson.ID = srcPerson.ID;
                 destPerson.Name = srcPerson.Name;
 
                 await destPerson.Cats.MapFromAsync(
                     parent: m1,
                     source: srcPerson.Cats,
-                    matchPredicate: async (srcCat, destCat) =>
-                    {
+                    matchPredicate: async (srcCat, destCat) => {
                         await Task.CompletedTask;
                         return srcCat.ID == destCat.ID;
                     },
-                    mapProperties: async (srcCat, destCat, _m2) =>
-                    {
+                    mapProperties: async (srcCat, destCat, _m2) => {
                         destCat.ID = srcCat.ID;
                         destCat.Name = srcCat.Name;
                         await Task.CompletedTask;
@@ -94,8 +88,7 @@ public class AsyncTests
     }
 
     [Test]
-    public async Task MapFromAsync_WithActualAsyncOperations_WorksCorrectly()
-    {
+    public async Task MapFromAsync_WithActualAsyncOperations_WorksCorrectly() {
         var destination = new List<Person>
         {
             new() { ID = 1, Name = "Alice" }
@@ -109,13 +102,11 @@ public class AsyncTests
 
         var report = await destination.MapFromAsync(
             source: source,
-            matchPredicate: async (src, dest) =>
-            {
+            matchPredicate: async (src, dest) => {
                 await Task.Delay(1); // Simulate async operation
                 return src.ID == dest.ID;
             },
-            mapProperties: async (src, dest, _m) =>
-            {
+            mapProperties: async (src, dest, _m) => {
                 await Task.Delay(1); // Simulate async operation
                 dest.ID = src.ID;
                 dest.Name = src.Name;
@@ -129,8 +120,7 @@ public class AsyncTests
     }
 
     [Test]
-    public async Task MapFromAsync_WithIEnumerableSource_WorksCorrectly()
-    {
+    public async Task MapFromAsync_WithIEnumerableSource_WorksCorrectly() {
         var destination = new List<Person>
         {
             new() { ID = 1, Name = "Alice" }
@@ -141,13 +131,11 @@ public class AsyncTests
 
         var report = await destination.MapFromAsync(
             source: source,
-            matchPredicate: async (src, dest) =>
-            {
+            matchPredicate: async (src, dest) => {
                 await Task.CompletedTask;
                 return src.ID == dest.ID;
             },
-            mapProperties: async (src, dest, _m) =>
-            {
+            mapProperties: async (src, dest, _m) => {
                 dest.ID = src.ID;
                 dest.Name = src.Name;
                 await Task.CompletedTask;
@@ -165,8 +153,7 @@ public class AsyncTests
     }
 
     [Test]
-    public async Task MapFromAsync_PropertyChanges_AreDetected()
-    {
+    public async Task MapFromAsync_PropertyChanges_AreDetected() {
         var destination = new List<Person>
         {
             new() { ID = 1, Name = "Alice" }
@@ -179,13 +166,11 @@ public class AsyncTests
 
         var report = await destination.MapFromAsync(
             source: source,
-            matchPredicate: async (src, dest) =>
-            {
+            matchPredicate: async (src, dest) => {
                 await Task.CompletedTask;
                 return src.ID == dest.ID;
             },
-            mapProperties: async (src, dest, _m) =>
-            {
+            mapProperties: async (src, dest, _m) => {
                 dest.ID = src.ID;
                 dest.Name = src.Name;
                 await Task.CompletedTask;
@@ -201,8 +186,7 @@ public class AsyncTests
     }
 
     [Test]
-    public async Task MapFromAsync_RemovesItemsNotInSource()
-    {
+    public async Task MapFromAsync_RemovesItemsNotInSource() {
         var destination = new List<Person>
         {
             new() { ID = 1, Name = "Alice" },
@@ -216,13 +200,11 @@ public class AsyncTests
 
         var report = await destination.MapFromAsync(
             source: source,
-            matchPredicate: async (src, dest) =>
-            {
+            matchPredicate: async (src, dest) => {
                 await Task.CompletedTask;
                 return src.ID == dest.ID;
             },
-            mapProperties: async (src, dest, _m) =>
-            {
+            mapProperties: async (src, dest, _m) => {
                 dest.ID = src.ID;
                 dest.Name = src.Name;
                 await Task.CompletedTask;
@@ -234,8 +216,7 @@ public class AsyncTests
     }
 
     [Test]
-    public async Task MapFromAsync_AddsNewItems()
-    {
+    public async Task MapFromAsync_AddsNewItems() {
         var destination = new List<Person>();
 
         var source = new List<PersonDto>
@@ -246,13 +227,11 @@ public class AsyncTests
 
         var report = await destination.MapFromAsync(
             source: source,
-            matchPredicate: async (src, dest) =>
-            {
+            matchPredicate: async (src, dest) => {
                 await Task.CompletedTask;
                 return src.ID == dest.ID;
             },
-            mapProperties: async (src, dest, _m) =>
-            {
+            mapProperties: async (src, dest, _m) => {
                 dest.ID = src.ID;
                 dest.Name = src.Name;
                 await Task.CompletedTask;

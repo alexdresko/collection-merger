@@ -13,8 +13,7 @@ public static class CollectionSyncAsyncExtensions
         IReadOnlyCollection<TSource> source,
         Func<TSource, TDestination, Task<bool>> matchPredicate,
         Func<TSource, TDestination, Mapper, Task> mapProperties)
-        where TDestination : new()
-    {
+        where TDestination : new() {
         ArgumentNullException.ThrowIfNull(destination);
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(matchPredicate);
@@ -42,8 +41,7 @@ public static class CollectionSyncAsyncExtensions
         IEnumerable<TSource> source,
         Func<TSource, TDestination, Task<bool>> matchPredicate,
         Func<TSource, TDestination, Mapper, Task> mapProperties)
-        where TDestination : new()
-    {
+        where TDestination : new() {
         ArgumentNullException.ThrowIfNull(destination);
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(matchPredicate);
@@ -62,8 +60,7 @@ public static class CollectionSyncAsyncExtensions
         IReadOnlyCollection<TSource> source,
         Func<TSource, TDestination, Task<bool>> matchPredicate,
         Func<TSource, TDestination, Mapper, Task> mapProperties)
-        where TDestination : new()
-    {
+        where TDestination : new() {
         ArgumentNullException.ThrowIfNull(destination);
         ArgumentNullException.ThrowIfNull(parent);
         ArgumentNullException.ThrowIfNull(source);
@@ -89,8 +86,7 @@ public static class CollectionSyncAsyncExtensions
         IEnumerable<TSource> source,
         Func<TSource, TDestination, Task<bool>> matchPredicate,
         Func<TSource, TDestination, Mapper, Task> mapProperties)
-        where TDestination : new()
-    {
+        where TDestination : new() {
         ArgumentNullException.ThrowIfNull(destination);
         ArgumentNullException.ThrowIfNull(parent);
         ArgumentNullException.ThrowIfNull(source);
@@ -109,14 +105,11 @@ public static class CollectionSyncAsyncExtensions
         Mapper mapper,
         string? parentPath,
         string collectionName)
-        where TDestination : new()
-    {
-        foreach (var sourceItem in source)
-        {
+        where TDestination : new() {
+        foreach (var sourceItem in source) {
             var destItem = await FindFirstMatchAsync(destination, sourceItem, matchPredicate);
 
-            if (destItem is not null)
-            {
+            if (destItem is not null) {
                 var beforeState = StateCapture.Capture(destItem);
 
                 var itemPath = PathBuilder.Build(parentPath, collectionName, sourceItem, destItem);
@@ -128,8 +121,7 @@ public static class CollectionSyncAsyncExtensions
 
                 var afterState = StateCapture.Capture(destItem);
                 var changes = StateCapture.DetectChanges(beforeState, afterState);
-                if (changes.Count > 0)
-                {
+                if (changes.Count > 0) {
                     mapper.RecordUpdate(itemPath, destItem!, changes);
                 }
 
@@ -150,8 +142,7 @@ public static class CollectionSyncAsyncExtensions
 
         var toRemove = await FindItemsToRemoveAsync(destination, source, matchPredicate);
 
-        foreach (var item in toRemove)
-        {
+        foreach (var item in toRemove) {
             destination.Remove(item);
             var itemPath = PathBuilder.Build(parentPath, collectionName, sourceItem: null, destinationItem: item);
             mapper.RecordRemove(itemPath, item!);
@@ -161,12 +152,9 @@ public static class CollectionSyncAsyncExtensions
     private static async Task<TDestination?> FindFirstMatchAsync<TSource, TDestination>(
         ICollection<TDestination> destination,
         TSource sourceItem,
-        Func<TSource, TDestination, Task<bool>> matchPredicate)
-    {
-        foreach (var d in destination)
-        {
-            if (await matchPredicate(sourceItem, d))
-            {
+        Func<TSource, TDestination, Task<bool>> matchPredicate) {
+        foreach (var d in destination) {
+            if (await matchPredicate(sourceItem, d)) {
                 return d;
             }
         }
@@ -176,15 +164,12 @@ public static class CollectionSyncAsyncExtensions
     private static async Task<List<TDestination>> FindItemsToRemoveAsync<TSource, TDestination>(
         ICollection<TDestination> destination,
         IReadOnlyCollection<TSource> source,
-        Func<TSource, TDestination, Task<bool>> matchPredicate)
-    {
+        Func<TSource, TDestination, Task<bool>> matchPredicate) {
         var toRemove = new List<TDestination>();
 
-        foreach (var dest in destination)
-        {
+        foreach (var dest in destination) {
             var hasMatch = await AnyMatchAsync(source, dest, matchPredicate);
-            if (!hasMatch)
-            {
+            if (!hasMatch) {
                 toRemove.Add(dest);
             }
         }
@@ -195,12 +180,9 @@ public static class CollectionSyncAsyncExtensions
     private static async Task<bool> AnyMatchAsync<TSource, TDestination>(
         IReadOnlyCollection<TSource> source,
         TDestination dest,
-        Func<TSource, TDestination, Task<bool>> matchPredicate)
-    {
-        foreach (var src in source)
-        {
-            if (await matchPredicate(src, dest))
-            {
+        Func<TSource, TDestination, Task<bool>> matchPredicate) {
+        foreach (var src in source) {
+            if (await matchPredicate(src, dest)) {
                 return true;
             }
         }

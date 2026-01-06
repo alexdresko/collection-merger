@@ -3,11 +3,9 @@ using CollectionMerger.Tests.Models.Nested;
 
 namespace CollectionMerger.Tests;
 
-public class Tests
-{
+public class Tests {
     [Test]
-    public void MapFrom_MergesNestedCollections_AndProducesReport()
-    {
+    public void MapFrom_MergesNestedCollections_AndProducesReport() {
         var destinationPeople = new List<Person>
         {
             new()
@@ -47,8 +45,7 @@ public class Tests
         var report = destinationPeople.MapFrom(
             source: sourcePeople,
             matchPredicate: (srcPerson, destPerson) => srcPerson.ID == destPerson.ID,
-            mapProperties: (srcPerson, destPerson, m1) =>
-            {
+            mapProperties: (srcPerson, destPerson, m1) => {
                 destPerson.ID = srcPerson.ID;
                 destPerson.Name = srcPerson.Name;
 
@@ -56,8 +53,7 @@ public class Tests
                     parent: m1,
                     source: srcPerson.Cats,
                     matchPredicate: (srcCat, destCat) => srcCat.ID == destCat.ID,
-                    mapProperties: (srcCat, destCat, _m2) =>
-                    {
+                    mapProperties: (srcCat, destCat, _m2) => {
                         destCat.ID = srcCat.ID;
                         destCat.Name = srcCat.Name;
                     });
@@ -86,8 +82,7 @@ public class Tests
     }
 
     [Test]
-    public void MapFrom_RemovesDestination_WhenSourceIsMarkedDeleted()
-    {
+    public void MapFrom_RemovesDestination_WhenSourceIsMarkedDeleted() {
         var destination = new List<FlaggedDestination>
         {
             new() { ID = 1, Name = "Destination 1" },
@@ -103,8 +98,7 @@ public class Tests
         var report = destination.MapFrom(
             source: source,
             matchPredicate: (src, dest) => src.ID == dest.ID,
-            mapProperties: (src, dest, _m) =>
-            {
+            mapProperties: (src, dest, _m) => {
                 dest.ID = src.ID;
                 dest.Name = src.Name;
             },
@@ -116,8 +110,7 @@ public class Tests
     }
 
     [Test]
-    public void MapFrom_UsesDeleteDestinationAction_ForRemovals()
-    {
+    public void MapFrom_UsesDeleteDestinationAction_ForRemovals() {
         var destination = new List<SoftDeleteDestination>
         {
             new() { ID = 1, Name = "Destination 1" }
@@ -128,8 +121,7 @@ public class Tests
         var report = destination.MapFrom(
             source: source,
             matchPredicate: (src, dest) => src.ID == dest.ID,
-            mapProperties: (src, dest, _m) =>
-            {
+            mapProperties: (src, dest, _m) => {
                 dest.ID = src.ID;
                 dest.Name = src.Name;
             },

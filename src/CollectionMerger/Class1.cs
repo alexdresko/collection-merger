@@ -1,4 +1,4 @@
-﻿namespace CollectionMerger;
+namespace CollectionMerger;
 
 /// <summary>
 /// Placeholder class.
