@@ -1,5 +1,8 @@
 namespace CollectionMerger;
 
+/// <summary>
+/// Provides extension methods for merging collections with change tracking.
+/// </summary>
 public static class CollectionSyncExtensions
 {
     /// <summary>
