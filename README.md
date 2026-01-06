@@ -7,7 +7,7 @@
 Synchronize/merge collections while generating a **change report** (added/updated/removed), including **nested collection** merges.
 
 - Targets: `net8.0`, `net9.0`, `net10.0`
-- Usage: Call `.MapFrom(...)` on any collection, passing another collection to merge from
+- Usage: Call `.MapFrom(...)` or `.MapFromAsync(...)` on any collection, passing another collection to merge from
 - Output: `SyncReport` with a list of `ChangeRecord` items
 
 See [CHANGELOG.md](CHANGELOG.md) for release history.
@@ -39,6 +39,8 @@ You merge a source collection into a destination collection by providing:
 - `matchPredicate`: how to match a source item to an existing destination item (usually by an ID)
 - `mapProperties`: how to copy/update properties from source to destination
 
+### Synchronous version
+
 ```csharp
 using CollectionMerger;
 
@@ -61,6 +63,29 @@ var report = destination.MapFrom(
     {
         dest.Id = src.Id;
         dest.Name = src.Name;
+    });
+
+Console.WriteLine($"Added: {report.AddedCount}, Updated: {report.UpdatedCount}, Removed: {report.RemovedCount}");
+```
+
+### Async version
+
+For async scenarios (e.g., fetching related data from a database, calling APIs), use `MapFromAsync`:
+
+```csharp
+using CollectionMerger;
+
+var report = await destination.MapFromAsync(
+    source: source,
+    matchPredicate: async (src, dest) =>
+    {
+        // Can perform async operations here
+        return src.Id == dest.Id;
+    },
+    mapProperties: async (src, dest, _m) =>
+    {
+        dest.Id = src.Id;
+        dest.Name = await FetchUpdatedNameAsync(src.Id); // Example async operation
     });
 
 Console.WriteLine($"Added: {report.AddedCount}, Updated: {report.UpdatedCount}, Removed: {report.RemovedCount}");
@@ -91,6 +116,33 @@ var report = destinationPeople.MapFrom(
             {
                 destCat.ID = srcCat.ID;
                 destCat.Name = srcCat.Name;
+            });
+    });
+```
+
+### Async nested collections
+
+For async nested collections, use `MapFromAsync`:
+
+```csharp
+using CollectionMerger;
+
+var report = await destinationPeople.MapFromAsync(
+    source: sourcePeople,
+    matchPredicate: async (srcPerson, destPerson) => srcPerson.ID == destPerson.ID,
+    mapProperties: async (srcPerson, destPerson, m1) =>
+    {
+        destPerson.ID = srcPerson.ID;
+        destPerson.Name = srcPerson.Name;
+
+        await destPerson.Cats.MapFromAsync(
+            parent: m1,
+            source: srcPerson.Cats,
+            matchPredicate: async (srcCat, destCat) => srcCat.ID == destCat.ID,
+            mapProperties: async (srcCat, destCat, _m2) =>
+            {
+                destCat.ID = srcCat.ID;
+                destCat.Name = await FetchCatNameAsync(srcCat.ID); // Example async operation
             });
     });
 ```
