@@ -17,7 +17,8 @@
         "showReuseMessage": false,
         "clear": true
       },
-      "problemMatcher": []
+      "problemMatcher": [],
+      "group": "none"
     },
     {
       "label": "Build Solution",
@@ -68,6 +69,23 @@
       "dependsOn": ["Build Solution"]
     },
     {
+      "label": "Format Solution",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "format",
+        "${workspaceFolder}/collection-merger.sln"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": "$msCompile",
+      "group": "build"
+    },
+    {
       "label": "Pack NuGet Package",
       "type": "shell",
       "command": "dotnet",
@@ -77,7 +95,7 @@
         "--configuration",
         "Release",
         "--output",
-        "${workspaceFolder}/artifacts/nuget"
+        "${workspaceFolder}/packages"
       ],
       "presentation": {
         "echo": true,
@@ -86,8 +104,7 @@
         "panel": "shared"
       },
       "problemMatcher": "$msCompile",
-      "group": "build",
-      "dependsOn": ["Build Solution"]
+      "group": "build"
     },
     {
       "label": "Clean Solution",
@@ -115,11 +132,9 @@
       "args": [
         "test",
         "${workspaceFolder}/collection-merger.sln",
-        "--configuration",
-        "Release",
         "--collect:XPlat Code Coverage",
         "--settings",
-        "${workspaceFolder}/coverlet.runsettings"
+        "coverlet.runsettings"
       ],
       "presentation": {
         "echo": true,
@@ -131,30 +146,12 @@
       "group": "test"
     },
     {
-      "label": "Tools: Install ReportGenerator (global)",
-      "type": "shell",
-      "command": "dotnet",
-      "args": [
-        "tool",
-        "install",
-        "--global",
-        "dotnet-reportgenerator-globaltool"
-      ],
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": false,
-        "panel": "shared"
-      },
-      "problemMatcher": []
-    },
-    {
       "label": "Coverage: Generate Report",
       "type": "shell",
       "command": "pwsh",
       "args": [
         "-Command",
-        "$report = Get-ChildItem -Path '${workspaceFolder}/test/CollectionMerger.Tests/TestResults' -Recurse -Filter 'coverage.cobertura.xml' | Sort-Object LastWriteTime -Descending | Select-Object -First 1 -ExpandProperty FullName; if (-not $report) { throw 'No coverage.cobertura.xml found. Run \"Test with Coverage\" first.' }; reportgenerator -reports:$report -targetdir:'${workspaceFolder}/coverage-report' -reporttypes:Html"
+        "$report = Get-ChildItem -Path test/CollectionMerger.Tests/TestResults -Recurse -Filter 'coverage.cobertura.xml' | Sort-Object LastWriteTime -Descending | Select-Object -First 1 -ExpandProperty FullName; reportgenerator -reports:$report -targetdir:coverage-report -reporttypes:Html"
       ],
       "presentation": {
         "echo": true,
@@ -171,7 +168,7 @@
       "command": "pwsh",
       "args": [
         "-Command",
-        "Start-Process '${workspaceFolder}/coverage-report/index.html'"
+        "Start-Process coverage-report/index.html"
       ],
       "presentation": {
         "echo": true,
@@ -188,7 +185,7 @@
       "command": "pwsh",
       "args": [
         "-Command",
-        "dotnet test '${workspaceFolder}/collection-merger.sln' --configuration Release --collect:'XPlat Code Coverage' --settings '${workspaceFolder}/coverlet.runsettings'; $report = Get-ChildItem -Path '${workspaceFolder}/test/CollectionMerger.Tests/TestResults' -Recurse -Filter 'coverage.cobertura.xml' | Sort-Object LastWriteTime -Descending | Select-Object -First 1 -ExpandProperty FullName; if (-not $report) { throw 'No coverage.cobertura.xml found.' }; reportgenerator -reports:$report -targetdir:'${workspaceFolder}/coverage-report' -reporttypes:Html; Start-Process '${workspaceFolder}/coverage-report/index.html'"
+        "dotnet test --collect:'XPlat Code Coverage' --settings coverlet.runsettings; $report = Get-ChildItem -Path test/CollectionMerger.Tests/TestResults -Recurse -Filter 'coverage.cobertura.xml' | Sort-Object LastWriteTime -Descending | Select-Object -First 1 -ExpandProperty FullName; reportgenerator -reports:$report -targetdir:coverage-report -reporttypes:Html; Start-Process coverage-report/index.html"
       ],
       "presentation": {
         "echo": true,

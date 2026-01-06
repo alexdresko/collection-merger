@@ -2,7 +2,7 @@ namespace CollectionMerger;
 
 public enum ChangeType
 {
-	Added,
-	Updated,
-	Removed
+    Added,
+    Updated,
+    Removed
 }
