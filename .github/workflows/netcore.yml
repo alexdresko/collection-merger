@@ -1,0 +1,58 @@
+name: .NET Core CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
+
+      - name: Install dotnet-format
+        shell: bash
+        run: |
+          dotnet tool update --global dotnet-format || dotnet tool install --global dotnet-format
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+
+      - name: Restore dependencies
+        run: dotnet restore ./collection-merger.sln
+
+      - name: Verify code formatting
+        run: dotnet format ./collection-merger.sln --verify-no-changes --verbosity diagnostic
+
+      - name: Build
+        run: dotnet build ./collection-merger.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test ./collection-merger.sln --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./TestResults
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./TestResults/**/coverage.cobertura.xml
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Pack
+        run: dotnet pack ./src/CollectionMerger/CollectionMerger.csproj -c Release --no-build -o ./packages
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: ./packages/*.nupkg

@@ -1,31 +1,10 @@
-name: CI
+name: Deprecated CI (use netcore.yml)
 
 on:
-  pull_request:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:
-  build-test:
+  deprecated:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: |
-            10.0.x
-
-      - name: Restore
-        run: dotnet restore ./collection-merger.sln
-
-      - name: Build
-        run: dotnet build ./collection-merger.sln -c Release --no-restore
-
-      - name: Test
-        run: dotnet test ./collection-merger.sln -c Release --no-build
+      - run: echo "Deprecated. Use .github/workflows/netcore.yml instead."

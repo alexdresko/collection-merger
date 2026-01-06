@@ -2,13 +2,15 @@
 
 [![NuGet](https://img.shields.io/nuget/v/CollectionMerger.svg)](https://www.nuget.org/packages/CollectionMerger/)
 [![NuGet Downloads](https://img.shields.io/nuget/dt/CollectionMerger.svg)](https://www.nuget.org/packages/CollectionMerger/)
-[![CI](https://github.com/alexdresko/collection-merger/actions/workflows/ci.yml/badge.svg)](https://github.com/alexdresko/collection-merger/actions/workflows/ci.yml)
+[![CI](https://github.com/alexdresko/collection-merger/actions/workflows/netcore.yml/badge.svg)](https://github.com/alexdresko/collection-merger/actions/workflows/netcore.yml)
 
 Synchronize/merge collections while generating a **change report** (added/updated/removed), including **nested collection** merges.
 
 - Targets: `net8.0`, `net9.0`, `net10.0`
 - Main entry point: `CollectionSyncExtensions.MapFrom(...)`
 - Output: `SyncReport` with a list of `ChangeRecord` items
+
+See [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ## Installation
 
@@ -149,13 +151,14 @@ https://github.com/alexdresko/collection-merger/issues
 
 ### Releasing
 
-This repo publishes to NuGet when you push a tag like `v1.2.3`.
+Releases are automated via Release Please.
 
-- Bump version + tag + push (PowerShell):
-  - `./scripts/Release-Version.ps1 -Version 1.2.3`
+- Merge changes into `main` using Conventional Commits.
+- Release Please will open/maintain a release PR updating `CHANGELOG.md` and package version.
+- Merging the release PR creates the GitHub Release + publishes to NuGet.
 
 ### GitHub setup
 
 The release workflow expects a GitHub Actions secret:
 
-- `NUGET_API_KEY`: a NuGet.org API key with permission to push packages.
+- `NUGET_API_KEY` (or `NUGET_TOKEN`): a NuGet.org API key with permission to push packages.

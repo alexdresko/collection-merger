@@ -1,0 +1,87 @@
+name: Release Please
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      body: ${{ steps.release.outputs.body }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  publish-nuget:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
+
+      - name: Install dotnet-format
+        shell: bash
+        run: |
+          dotnet tool update --global dotnet-format || dotnet tool install --global dotnet-format
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+
+      - name: Restore dependencies
+        run: dotnet restore ./collection-merger.sln
+
+      - name: Verify code formatting
+        run: dotnet format ./collection-merger.sln --verify-no-changes --verbosity diagnostic
+
+      - name: Build
+        run: dotnet build ./collection-merger.sln --configuration Release --no-restore
+
+      - name: Run tests
+        run: dotnet test ./collection-merger.sln --configuration Release --no-build --verbosity normal
+
+      - name: Pack NuGet package
+        shell: bash
+        run: |
+          RELEASE_NOTES="${{ needs.release-please.outputs.body }}"
+          dotnet pack ./src/CollectionMerger/CollectionMerger.csproj \
+            --configuration Release \
+            --no-build \
+            --output ./packages \
+            /p:PackageReleaseNotes="$RELEASE_NOTES"
+
+      - name: Publish to NuGet.org
+        env:
+          NUGET_TOKEN: ${{ secrets.NUGET_API_KEY || secrets.NUGET_TOKEN }}
+        run: dotnet nuget push ./packages/*.nupkg --api-key ${{ env.NUGET_TOKEN }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+      - name: Upload package to GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.release-please.outputs.tag_name }}
+          files: ./packages/*.nupkg
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
