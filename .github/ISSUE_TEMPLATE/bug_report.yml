@@ -1,0 +1,87 @@
+name: 🐛 Bug Report
+description: Report a bug or unexpected behavior
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill out the sections below to help us investigate.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear and concise description of what the bug is.
+      placeholder: When I try to merge collections with...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Provide steps or code to reproduce the issue.
+      placeholder: |
+        1. Create a collection with...
+        2. Call MapFrom with...
+        3. Observe that...
+      value: |
+        ```csharp
+        // Your code here
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: I expected the collection to...
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened? Include error messages or unexpected output.
+      placeholder: Instead, the collection...
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: CollectionMerger Version
+      description: Which version of CollectionMerger are you using?
+      placeholder: e.g., 1.0.0
+    validations:
+      required: true
+
+  - type: input
+    id: dotnet-version
+    attributes:
+      label: .NET Version
+      description: Which .NET version are you targeting?
+      placeholder: e.g., net8.0, net9.0, net10.0
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here (logs, screenshots, etc.).
+      placeholder: Any other relevant information...
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        **Note for contributors**: When fixing this issue, please use [Conventional Commits](https://www.conventionalcommits.org/) format:
+        - Bug fixes should use: `fix: <description>` or `fix(scope): <description>`
+        - See [commit-instructions.md](https://github.com/alexdresko/collection-merger/blob/main/docs/commit-instructions.md) for details
