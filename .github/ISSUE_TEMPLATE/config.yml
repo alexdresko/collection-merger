@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 📖 Documentation
+    url: https://github.com/alexdresko/collection-merger/blob/main/README.md
+    about: Read the README for usage and examples
+  - name: 💬 Discussions
+    url: https://github.com/alexdresko/collection-merger/discussions
+    about: Ask questions and discuss ideas with the community
