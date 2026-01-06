@@ -146,8 +146,7 @@ public class AsyncTests {
         Assert.That(report.AddedCount, Is.EqualTo(1));
     }
 
-    private static IEnumerable<PersonDto> GetPersonDtosAsync()
-    {
+    private static IEnumerable<PersonDto> GetPersonDtosAsync() {
         yield return new PersonDto { ID = 1, Name = "Alice Updated" };
         yield return new PersonDto { ID = 2, Name = "Bob" };
     }
@@ -243,8 +242,7 @@ public class AsyncTests {
     }
 
     [Test]
-    public async Task MapFromAsync_NestedWithIEnumerableSource_WorksCorrectly()
-    {
+    public async Task MapFromAsync_NestedWithIEnumerableSource_WorksCorrectly() {
         var destination = new List<Person>
         {
             new()
@@ -267,13 +265,11 @@ public class AsyncTests {
 
         var report = await destination.MapFromAsync(
             source: source,
-            matchPredicate: async (src, dest) =>
-            {
+            matchPredicate: async (src, dest) => {
                 await Task.CompletedTask;
                 return src.ID == dest.ID;
             },
-            mapProperties: async (srcPerson, destPerson, m1) =>
-            {
+            mapProperties: async (srcPerson, destPerson, m1) => {
                 destPerson.ID = srcPerson.ID;
                 destPerson.Name = srcPerson.Name;
 
@@ -282,13 +278,11 @@ public class AsyncTests {
                 await destPerson.Cats.MapFromAsync(
                     parent: m1,
                     source: catsAsEnumerable,
-                    matchPredicate: async (srcCat, destCat) =>
-                    {
+                    matchPredicate: async (srcCat, destCat) => {
                         await Task.CompletedTask;
                         return srcCat.ID == destCat.ID;
                     },
-                    mapProperties: async (srcCat, destCat, _m2) =>
-                    {
+                    mapProperties: async (srcCat, destCat, _m2) => {
                         destCat.ID = srcCat.ID;
                         destCat.Name = srcCat.Name;
                         await Task.CompletedTask;
@@ -300,10 +294,8 @@ public class AsyncTests {
         Assert.That(report.UpdatedCount, Is.EqualTo(2));
     }
 
-    private static IEnumerable<CatDto> GetCatDtosAsync(IEnumerable<CatDto> cats)
-    {
-        foreach (var cat in cats)
-        {
+    private static IEnumerable<CatDto> GetCatDtosAsync(IEnumerable<CatDto> cats) {
+        foreach (var cat in cats) {
             yield return cat;
         }
     }

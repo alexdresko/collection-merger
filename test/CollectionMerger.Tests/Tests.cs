@@ -134,8 +134,7 @@ public class Tests {
     }
 
     [Test]
-    public void MapFrom_WithIEnumerableSource_WorksCorrectly()
-    {
+    public void MapFrom_WithIEnumerableSource_WorksCorrectly() {
         var destination = new List<Person>
         {
             new() { ID = 1, Name = "Alice" }
@@ -147,8 +146,7 @@ public class Tests {
         var report = destination.MapFrom(
             source: source,
             matchPredicate: (src, dest) => src.ID == dest.ID,
-            mapProperties: (src, dest, _m) =>
-            {
+            mapProperties: (src, dest, _m) => {
                 dest.ID = src.ID;
                 dest.Name = src.Name;
             });
@@ -158,23 +156,19 @@ public class Tests {
         Assert.That(report.AddedCount, Is.EqualTo(1));
     }
 
-    private static IEnumerable<PersonDto> GetPersonDtos()
-    {
+    private static IEnumerable<PersonDto> GetPersonDtos() {
         yield return new PersonDto { ID = 1, Name = "Alice Updated" };
         yield return new PersonDto { ID = 2, Name = "Bob" };
     }
 
-    private static IEnumerable<CatDto> GetCatDtos(IEnumerable<CatDto> cats)
-    {
-        foreach (var cat in cats)
-        {
+    private static IEnumerable<CatDto> GetCatDtos(IEnumerable<CatDto> cats) {
+        foreach (var cat in cats) {
             yield return cat;
         }
     }
 
     [Test]
-    public void MapFrom_NestedWithIEnumerableSource_WorksCorrectly()
-    {
+    public void MapFrom_NestedWithIEnumerableSource_WorksCorrectly() {
         var destination = new List<Person>
         {
             new()
@@ -198,8 +192,7 @@ public class Tests {
         var report = destination.MapFrom(
             source: source,
             matchPredicate: (src, dest) => src.ID == dest.ID,
-            mapProperties: (srcPerson, destPerson, m1) =>
-            {
+            mapProperties: (srcPerson, destPerson, m1) => {
                 destPerson.ID = srcPerson.ID;
                 destPerson.Name = srcPerson.Name;
 
@@ -209,8 +202,7 @@ public class Tests {
                     parent: m1,
                     source: catsAsEnumerable,
                     matchPredicate: (srcCat, destCat) => srcCat.ID == destCat.ID,
-                    mapProperties: (srcCat, destCat, _m2) =>
-                    {
+                    mapProperties: (srcCat, destCat, _m2) => {
                         destCat.ID = srcCat.ID;
                         destCat.Name = srcCat.Name;
                     });
@@ -222,8 +214,7 @@ public class Tests {
     }
 
     [Test]
-    public void MapFrom_IgnoresDeletedItemNotInDestination()
-    {
+    public void MapFrom_IgnoresDeletedItemNotInDestination() {
         var destination = new List<FlaggedDestination>
         {
             new() { ID = 1, Name = "Destination 1" }
@@ -238,8 +229,7 @@ public class Tests {
         var report = destination.MapFrom(
             source: source,
             matchPredicate: (src, dest) => src.ID == dest.ID,
-            mapProperties: (src, dest, _m) =>
-            {
+            mapProperties: (src, dest, _m) => {
                 dest.ID = src.ID;
                 dest.Name = src.Name;
             },
@@ -251,8 +241,7 @@ public class Tests {
     }
 
     [Test]
-    public void MapFrom_DeletesItemFoundInDestination()
-    {
+    public void MapFrom_DeletesItemFoundInDestination() {
         var destination = new List<FlaggedDestination>
         {
             new() { ID = 1, Name = "Item 1" },
@@ -268,8 +257,7 @@ public class Tests {
         var report = destination.MapFrom(
             source: source,
             matchPredicate: (src, dest) => src.ID == dest.ID,
-            mapProperties: (src, dest, _m) =>
-            {
+            mapProperties: (src, dest, _m) => {
                 dest.ID = src.ID;
                 dest.Name = src.Name;
             },

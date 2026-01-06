@@ -3,8 +3,7 @@ namespace CollectionMerger;
 /// <summary>
 /// Tracks changes and manages path context during collection merge operations.
 /// </summary>
-public sealed class Mapper
-{
+public sealed class Mapper {
     private readonly Stack<string> _pathStack = new();
     private readonly List<ChangeRecord> _changes = new();
 

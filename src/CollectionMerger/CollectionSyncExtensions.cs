@@ -3,8 +3,7 @@ namespace CollectionMerger;
 /// <summary>
 /// Provides extension methods for merging collections with change tracking.
 /// </summary>
-public static class CollectionSyncExtensions
-{
+public static class CollectionSyncExtensions {
     /// <summary>
     /// Merges <paramref name="source"/> into <paramref name="destination"/> and returns a report describing adds/updates/removes.
     /// </summary>
