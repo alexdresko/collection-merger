@@ -126,11 +126,8 @@ public class AsyncTests {
             new() { ID = 1, Name = "Alice" }
         };
 
-        IEnumerable<PersonDto> source = new List<PersonDto>
-        {
-            new() { ID = 1, Name = "Alice Updated" },
-            new() { ID = 2, Name = "Bob" }
-        };
+        // Use true IEnumerable to hit the async IEnumerable overload
+        IEnumerable<PersonDto> source = GetPersonDtos();
 
         var report = await destination.MapFromAsync(
             source: source,
@@ -147,6 +144,11 @@ public class AsyncTests {
         Assert.That(destination.Count, Is.EqualTo(2));
         Assert.That(report.UpdatedCount, Is.EqualTo(1));
         Assert.That(report.AddedCount, Is.EqualTo(1));
+    }
+
+    private static IEnumerable<PersonDto> GetPersonDtos() {
+        yield return new PersonDto { ID = 1, Name = "Alice Updated" };
+        yield return new PersonDto { ID = 2, Name = "Bob" };
     }
 
     [Test]
@@ -237,5 +239,64 @@ public class AsyncTests {
         Assert.That(destination.Count, Is.EqualTo(2));
         Assert.That(destination.Select(p => p.ID).Order(), Is.EquivalentTo(new[] { 1, 2 }));
         Assert.That(report.AddedCount, Is.EqualTo(2));
+    }
+
+    [Test]
+    public async Task MapFromAsync_NestedWithIEnumerableSource_WorksCorrectly() {
+        var destination = new List<Person>
+        {
+            new()
+            {
+                ID = 1,
+                Name = "Person 1",
+                Cats = [new() { ID = 1, Name = "Cat 1" }]
+            }
+        };
+
+        var source = new List<PersonDto>
+        {
+            new()
+            {
+                ID = 1,
+                Name = "Person 1 Updated",
+                Cats = [new() { ID = 1, Name = "Cat 1 Updated" }, new() { ID = 2, Name = "Cat 2" }]
+            }
+        };
+
+        var report = await destination.MapFromAsync(
+            source: source,
+            matchPredicate: async (src, dest) => {
+                await Task.CompletedTask;
+                return src.ID == dest.ID;
+            },
+            mapProperties: async (srcPerson, destPerson, m1) => {
+                destPerson.ID = srcPerson.ID;
+                destPerson.Name = srcPerson.Name;
+
+                // Use true IEnumerable to hit async nested IEnumerable overload
+                IEnumerable<CatDto> catsAsEnumerable = GetCatDtos(srcPerson.Cats);
+                await destPerson.Cats.MapFromAsync(
+                    parent: m1,
+                    source: catsAsEnumerable,
+                    matchPredicate: async (srcCat, destCat) => {
+                        await Task.CompletedTask;
+                        return srcCat.ID == destCat.ID;
+                    },
+                    mapProperties: async (srcCat, destCat, _m2) => {
+                        destCat.ID = srcCat.ID;
+                        destCat.Name = srcCat.Name;
+                        await Task.CompletedTask;
+                    });
+            });
+
+        Assert.That(destination.Single().Cats.Count, Is.EqualTo(2));
+        Assert.That(report.AddedCount, Is.EqualTo(1));
+        Assert.That(report.UpdatedCount, Is.EqualTo(2));
+    }
+
+    private static IEnumerable<CatDto> GetCatDtos(IEnumerable<CatDto> cats) {
+        foreach (var cat in cats) {
+            yield return cat;
+        }
     }
 }

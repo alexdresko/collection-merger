@@ -1,9 +1,15 @@
 namespace CollectionMerger;
 
+/// <summary>
+/// Tracks changes and manages path context during collection merge operations.
+/// </summary>
 public sealed class Mapper {
     private readonly Stack<string> _pathStack = new();
     private readonly List<ChangeRecord> _changes = new();
 
+    /// <summary>
+    /// Gets the current path in the collection hierarchy, or null if at the root.
+    /// </summary>
     public string? CurrentPath => _pathStack.Count > 0 ? _pathStack.Peek() : null;
 
     internal void PushPath(string path) {
