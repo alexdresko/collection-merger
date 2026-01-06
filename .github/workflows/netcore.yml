@@ -36,7 +36,7 @@ jobs:
         run: dotnet format ./collection-merger.sln --verify-no-changes --verbosity diagnostic
 
       - name: Build
-        run: dotnet build ./collection-merger.sln --configuration Release
+        run: dotnet build ./collection-merger.sln --configuration Release --no-restore
 
       - name: Test
         run: dotnet test ./collection-merger.sln --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./TestResults
