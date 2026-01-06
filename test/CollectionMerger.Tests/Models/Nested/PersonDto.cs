@@ -1,4 +1,4 @@
-namespace CollectionMerger.Tests.Models;
+namespace CollectionMerger.Tests.Models.Nested;
 
 public sealed class PersonDto
 {

@@ -38,6 +38,8 @@ You merge a source collection into a destination collection by providing:
 
 - `matchPredicate`: how to match a source item to an existing destination item (usually by an ID)
 - `mapProperties`: how to copy/update properties from source to destination
+- `isSourceDeleted` (optional): treat a source item as deleted even when it exists in the source collection
+- `deleteDestination` (optional): custom delete action for destination items (default removes from the collection)
 
 ### Synchronous version
 
@@ -162,6 +164,36 @@ foreach (var change in report.Changes)
 }
 ```
 
+### Source-driven deletes + custom delete actions
+
+Mark a source item as deleted and remove its destination match (default removal):
+
+```csharp
+var report = destination.MapFrom(
+    source: source,
+    matchPredicate: (src, dest) => src.ID == dest.ID,
+    mapProperties: (src, dest, _m) =>
+    {
+        dest.ID = src.ID;
+        dest.Name = src.Name;
+    },
+    isSourceDeleted: src => src.Deleted);
+```
+
+Provide a custom delete action (soft delete instead of removing):
+
+```csharp
+var report = destination.MapFrom(
+    source: source,
+    matchPredicate: (src, dest) => src.ID == dest.ID,
+    mapProperties: (src, dest, _m) =>
+    {
+        dest.ID = src.ID;
+        dest.Name = src.Name;
+    },
+    deleteDestination: dest => dest.Deleted = true);
+```
+
 ## What the report contains
 
 `SyncReport.Changes` contains `ChangeRecord` entries:
@@ -193,6 +225,20 @@ If you want nested changes, perform nested merges with the nested overload of `M
 - Destination must be an `ICollection<TDestination>`
 - `TDestination` must have a parameterless constructor (`new()` constraint)
 - Matching behavior is entirely defined by your `matchPredicate` (make sure it uniquely identifies items)
+
+## Similar projects
+
+### AutoMapper.Collection
+
+CollectionMerger is similar to [AutoMapper.Collection](https://github.com/AutoMapper/AutoMapper.Collection).
+
+Key differences:
+
+- **No Entity Framework dependency**: CollectionMerger does not have a dependency on Entity Framework, but Entity Framework can be used with it.
+- **Soft deletes**: Supports soft deletes, or even not deleting at all.
+- **Async/await**: Supports async/await patterns.
+- **Low-level approach**: Feels more low level than AutoMapper.Collection, giving you more control.
+- **No external dependencies**: Has no external dependencies.
 
 ## Feedback / issues
 

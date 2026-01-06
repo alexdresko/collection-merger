@@ -9,7 +9,9 @@ public static class CollectionSyncExtensions
         this ICollection<TDestination> destination,
         IReadOnlyCollection<TSource> source,
         Func<TSource, TDestination, bool> matchPredicate,
-        Action<TSource, TDestination, Mapper> mapProperties)
+        Action<TSource, TDestination, Mapper> mapProperties,
+        Func<TSource, bool>? isSourceDeleted = null,
+        Action<TDestination>? deleteDestination = null)
         where TDestination : new()
     {
         ArgumentNullException.ThrowIfNull(destination);
@@ -25,6 +27,8 @@ public static class CollectionSyncExtensions
             matchPredicate,
             mapProperties,
             mapper,
+            isSourceDeleted,
+            deleteDestination,
             parentPath: null,
             collectionName: typeof(TDestination).Name);
 
@@ -38,7 +42,9 @@ public static class CollectionSyncExtensions
         this ICollection<TDestination> destination,
         IEnumerable<TSource> source,
         Func<TSource, TDestination, bool> matchPredicate,
-        Action<TSource, TDestination, Mapper> mapProperties)
+        Action<TSource, TDestination, Mapper> mapProperties,
+        Func<TSource, bool>? isSourceDeleted = null,
+        Action<TDestination>? deleteDestination = null)
         where TDestination : new()
     {
         ArgumentNullException.ThrowIfNull(destination);
@@ -47,7 +53,7 @@ public static class CollectionSyncExtensions
         ArgumentNullException.ThrowIfNull(mapProperties);
 
         var materializedSource = source as IReadOnlyCollection<TSource> ?? source.ToList();
-        return destination.MapFrom(materializedSource, matchPredicate, mapProperties);
+        return destination.MapFrom(materializedSource, matchPredicate, mapProperties, isSourceDeleted, deleteDestination);
     }
 
     /// <summary>
@@ -58,7 +64,9 @@ public static class CollectionSyncExtensions
         Mapper parent,
         IReadOnlyCollection<TSource> source,
         Func<TSource, TDestination, bool> matchPredicate,
-        Action<TSource, TDestination, Mapper> mapProperties)
+        Action<TSource, TDestination, Mapper> mapProperties,
+        Func<TSource, bool>? isSourceDeleted = null,
+        Action<TDestination>? deleteDestination = null)
         where TDestination : new()
     {
         ArgumentNullException.ThrowIfNull(destination);
@@ -73,6 +81,8 @@ public static class CollectionSyncExtensions
             matchPredicate,
             mapProperties,
             parent,
+            isSourceDeleted,
+            deleteDestination,
             parentPath: parent.CurrentPath,
             collectionName: typeof(TDestination).Name);
     }
@@ -85,7 +95,9 @@ public static class CollectionSyncExtensions
         Mapper parent,
         IEnumerable<TSource> source,
         Func<TSource, TDestination, bool> matchPredicate,
-        Action<TSource, TDestination, Mapper> mapProperties)
+        Action<TSource, TDestination, Mapper> mapProperties,
+        Func<TSource, bool>? isSourceDeleted = null,
+        Action<TDestination>? deleteDestination = null)
         where TDestination : new()
     {
         ArgumentNullException.ThrowIfNull(destination);
@@ -95,7 +107,7 @@ public static class CollectionSyncExtensions
         ArgumentNullException.ThrowIfNull(mapProperties);
 
         var materializedSource = source as IReadOnlyCollection<TSource> ?? source.ToList();
-        destination.MapFrom(parent, materializedSource, matchPredicate, mapProperties);
+        destination.MapFrom(parent, materializedSource, matchPredicate, mapProperties, isSourceDeleted, deleteDestination);
     }
 
     private static void MapFromInternal<TSource, TDestination>(
@@ -104,12 +116,39 @@ public static class CollectionSyncExtensions
         Func<TSource, TDestination, bool> matchPredicate,
         Action<TSource, TDestination, Mapper> mapProperties,
         Mapper mapper,
+        Func<TSource, bool>? isSourceDeleted,
+        Action<TDestination>? deleteDestination,
         string? parentPath,
         string collectionName)
         where TDestination : new()
     {
+        void ApplyDelete(object? sourceItem, TDestination destinationItem)
+        {
+            if (deleteDestination is null)
+            {
+                destination.Remove(destinationItem);
+            }
+            else
+            {
+                deleteDestination(destinationItem);
+            }
+
+            var itemPath = PathBuilder.Build(parentPath, collectionName, sourceItem, destinationItem);
+            mapper.RecordRemove(itemPath, destinationItem!);
+        }
+
         foreach (var sourceItem in source)
         {
+            if (isSourceDeleted?.Invoke(sourceItem) == true)
+            {
+                var deletedItem = destination.FirstOrDefault(d => matchPredicate(sourceItem, d));
+                if (deletedItem is null)
+                    continue;
+
+                ApplyDelete(sourceItem, deletedItem);
+                continue;
+            }
+
             var destItem = destination.FirstOrDefault(d => matchPredicate(sourceItem, d));
             if (destItem is not null)
             {
@@ -150,9 +189,7 @@ public static class CollectionSyncExtensions
 
         foreach (var item in toRemove)
         {
-            destination.Remove(item);
-            var itemPath = PathBuilder.Build(parentPath, collectionName, sourceItem: null, destinationItem: item);
-            mapper.RecordRemove(itemPath, item!);
+            ApplyDelete(sourceItem: null, destinationItem: item);
         }
     }
 }
