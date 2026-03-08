@@ -57,13 +57,6 @@ jobs:
             9.0.x
             10.0.x
 
-      - name: Install dotnet-format
-        if: ${{ steps.cadence.outputs.should_run == 'true' }}
-        shell: bash
-        run: |
-          dotnet tool update --global dotnet-format || dotnet tool install --global dotnet-format
-          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
-
       - name: Update NuGet dependencies
         if: ${{ steps.cadence.outputs.should_run == 'true' }}
         run: dotnet package update --project ./collection-merger.sln
@@ -90,8 +83,8 @@ jobs:
         with:
           branch: automation/monthly-dependency-updates
           delete-branch: true
-          commit-message: fix: update dependencies
-          title: fix: update dependencies
+          commit-message: fix(deps): update dependencies
+          title: fix(deps): update dependencies
           body: |
             ## Summary
             - update NuGet dependencies used by the solution
