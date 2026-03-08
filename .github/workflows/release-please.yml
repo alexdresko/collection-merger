@@ -4,13 +4,104 @@ on:
   push:
     branches:
       - main
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
 
 permissions:
   contents: write
   pull-requests: write
 
 jobs:
+  update-dependencies:
+    if: ${{ github.event_name != 'push' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check whether 30 days have passed since the latest tag
+        id: cadence
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          latest_tag="$(git tag --sort=-creatordate | head -n 1)"
+
+          if [[ -z "$latest_tag" ]]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          now_epoch="$(date -u +%s)"
+          last_tag_epoch="$(git log -1 --format=%ct "$latest_tag")"
+          thirty_days=$((30 * 24 * 60 * 60))
+
+          if (( now_epoch - last_tag_epoch >= thirty_days )); then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup .NET
+        if: ${{ steps.cadence.outputs.should_run == 'true' }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
+
+      - name: Install dotnet-format
+        if: ${{ steps.cadence.outputs.should_run == 'true' }}
+        shell: bash
+        run: |
+          dotnet tool update --global dotnet-format || dotnet tool install --global dotnet-format
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+
+      - name: Update NuGet dependencies
+        if: ${{ steps.cadence.outputs.should_run == 'true' }}
+        run: dotnet package update --project ./collection-merger.sln
+
+      - name: Restore dependencies
+        if: ${{ steps.cadence.outputs.should_run == 'true' }}
+        run: dotnet restore ./collection-merger.sln
+
+      - name: Verify code formatting
+        if: ${{ steps.cadence.outputs.should_run == 'true' }}
+        run: dotnet format ./collection-merger.sln --verify-no-changes --verbosity diagnostic
+
+      - name: Build
+        if: ${{ steps.cadence.outputs.should_run == 'true' }}
+        run: dotnet build ./collection-merger.sln --configuration Release --no-restore
+
+      - name: Run tests
+        if: ${{ steps.cadence.outputs.should_run == 'true' }}
+        run: dotnet test ./collection-merger.sln --configuration Release --no-build --verbosity normal
+
+      - name: Create pull request
+        if: ${{ steps.cadence.outputs.should_run == 'true' }}
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: automation/monthly-dependency-updates
+          delete-branch: true
+          commit-message: fix: update dependencies
+          title: fix: update dependencies
+          body: |
+            ## Summary
+            - update NuGet dependencies used by the solution
+            - verify formatting, build, and tests before opening the PR
+
+            ## Notes
+            - merging this PR will allow the existing release workflow to publish the next package version
+
   release-please:
+    if: ${{ github.event_name == 'push' }}
     runs-on: ubuntu-latest
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
