@@ -83,8 +83,8 @@ jobs:
         with:
           branch: automation/monthly-dependency-updates
           delete-branch: true
-          commit-message: fix(deps): update dependencies
-          title: fix(deps): update dependencies
+          commit-message: "fix(deps): update dependencies"
+          title: "fix(deps): update dependencies"
           body: |
             ## Summary
             - update NuGet dependencies used by the solution
